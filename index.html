@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-SCRAP — Material Scrap Management System</title>
+<style>
+  /* ====== Dasar ====== */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", Arial, sans-serif; background: #f1f4f9; color: #1f2937; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px 40px; }
+
+  /* ====== Header navy ====== */
+  header { background: #16233f; color: #fff; }
+  .header-inner { max-width: 1180px; margin: 0 auto; padding: 14px 16px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .logo { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; letter-spacing: 1px; }
+  .logo .mark { width: 36px; height: 36px; border-radius: 8px; background: #22c55e; color: #16233f; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900; }
+  nav { display: flex; gap: 6px; margin-left: 12px; }
+  nav button { background: transparent; border: 0; color: #cbd5e1; font-size: 15px; padding: 8px 14px; border-radius: 8px; cursor: pointer; }
+  nav button.active { background: #24365e; color: #fff; font-weight: 700; }
+  nav button:hover { color: #fff; }
+  .userbox { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .bell { font-size: 18px; position: relative; cursor: pointer; }
+  .bell .dot { position: absolute; top: -2px; right: -4px; background: #ef4444; color: #fff; font-size: 10px; min-width: 15px; height: 15px; border-radius: 8px; display: flex; align-items: center; justify-content: center; padding: 0 3px; }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; background: #22c55e; color: #16233f; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .username { font-size: 14px; }
+
+  h1.page-title { font-size: 20px; margin: 22px 0 4px; }
+  .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 18px; }
+
+  /* ====== Kartu kategori ====== */
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .card { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.08); border-top: 4px solid #999; }
+  .card.blue   { border-top-color: #2563eb; }
+  .card.green  { border-top-color: #16a34a; }
+  .card.yellow { border-top-color: #eab308; }
+  .card.red    { border-top-color: #ef4444; }
+  .card .cat { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; }
+  .card .cat .ico { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 17px; }
+  .card.blue .ico   { background: #dbeafe; }
+  .card.green .ico  { background: #dcfce7; }
+  .card.yellow .ico { background: #fef9c3; }
+  .card.red .ico    { background: #fee2e2; }
+  .card .qty { font-size: 26px; font-weight: 800; margin-top: 10px; }
+  .card .amt { color: #16a34a; font-weight: 700; font-size: 14px; margin-top: 2px; }
+  .card .lbl { color: #6b7280; font-size: 12px; }
+
+  /* ====== Ringkasan ====== */
+  .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
+  .sum { background: #fff; border-radius: 12px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .sum .t { color: #6b7280; font-size: 13px; }
+  .sum .v { font-size: 20px; font-weight: 800; margin-top: 4px; }
+  .sum .v small { font-size: 13px; color: #6b7280; font-weight: 600; }
+
+  /* ====== Grafik ====== */
+  .charts { display: grid; grid-template-columns: 1.6fr 1fr; gap: 14px; margin-top: 14px; }
+  .panel { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .panel h2 { font-size: 16px; margin-bottom: 4px; }
+  .panel .hint { color: #6b7280; font-size: 12px; margin-bottom: 10px; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: #374151; margin-bottom: 8px; }
+  .legend span { display: flex; align-items: center; gap: 5px; }
+  .sw { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+  .donut-wrap { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .donut-legend { font-size: 13px; }
+  .donut-legend div { margin: 6px 0; display: flex; justify-content: space-between; gap: 14px; }
+  .donut-legend b { font-weight: 700; }
+  .empty { color: #6b7280; font-size: 14px; padding: 24px 0; text-align: center; }
+
+  /* ====== Toolbar data ====== */
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 18px 0 12px; }
+  .toolbar input, .toolbar select { padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: #fff; }
+  .toolbar input[type="search"] { flex: 1; min-width: 180px; }
+  .btn { border: 0; border-radius: 8px; padding: 10px 16px; font-size: 14px; cursor: pointer; font-weight: 700; }
+  .btn-primary { background: #16233f; color: #fff; }
+  .btn-green { background: #16a34a; color: #fff; }
+  .btn-ghost { background: #fff; border: 1px solid #d1d5db; color: #374151; }
+  .btn-danger { background: #fee2e2; color: #b91c1c; }
+  .btn-sm { padding: 6px 10px; font-size: 13px; }
+
+  /* ====== Tabel ====== */
+  .table-wrap { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 860px; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
+  th { background: #f8fafc; color: #374151; font-size: 13px; }
+  td.num, th.num { text-align: right; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+  .st-Terjual { background: #dcfce7; color: #15803d; }
+  .st-Pending { background: #fef9c3; color: #a16207; }
+  .st-Tersedia { background: #dbeafe; color: #1d4ed8; }
+  .cat-tag { font-weight: 700; font-size: 13px; }
+
+  /* ====== Modal ====== */
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: flex-start; justify-content: center; padding: 40px 16px; z-index: 50; }
+  .modal-bg.open { display: flex; }
+  .modal { background: #fff; border-radius: 14px; width: 100%; max-width: 560px; padding: 22px; max-height: 90vh; overflow-y: auto; }
+  .modal h2 { font-size: 18px; margin-bottom: 14px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-grid .full { grid-column: 1 / -1; }
+  label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 4px; color: #374151; }
+  .modal input, .modal select { width: 100%; padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; }
+  .total-preview { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 12px; font-weight: 800; color: #15803d; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+
+  .hidden { display: none !important; }
+  @media (max-width: 820px) {
+    .cards { grid-template-columns: repeat(2, 1fr); }
+    .charts { grid-template-columns: 1fr; }
+    .summary { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo"><span class="mark">♻</span> E-SCRAP</div>
+    <nav>
+      <button id="nav-dashboard" class="active" onclick="showView('dashboard')">Dashboard</button>
+      <button id="nav-data" onclick="showView('data')">Data Scrap (<span id="nav-count">0</span>)</button>
+    </nav>
+    <div class="userbox">
+      <span class="bell">🔔<span class="dot" id="bell-count">0</span></span>
+      <span class="avatar">B</span>
+      <span class="username">bagus</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ================= DASHBOARD ================= -->
+  <section id="view-dashboard">
+    <h1 class="page-title">Dashboard Scrap</h1>
+    <p class="subtitle">Ringkasan material scrap per kategori &middot; Tahun
+      <select id="year-select" onchange="renderAll()" style="padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;">
+        <option>2026</option>
+      </select>
+    </p>
+
+    <div class="cards" id="category-cards"></div>
+
+    <div class="summary">
+      <div class="sum"><div class="t">Total Scrap (Qty | Amount)</div><div class="v" id="sum-total">-</div></div>
+      <div class="sum"><div class="t">Terjual</div><div class="v" id="sum-sold" style="color:#15803d">-</div></div>
+      <div class="sum"><div class="t">Pending</div><div class="v" id="sum-pending" style="color:#a16207">-</div></div>
+    </div>
+
+    <div class="charts">
+      <div class="panel">
+        <h2>Qty | Amount</h2>
+        <p class="hint">Jumlah scrap per bulan (Jan–Mei), ditumpuk per kategori</p>
+        <div class="legend" id="bar-legend"></div>
+        <div id="bar-chart"></div>
+      </div>
+      <div class="panel">
+        <h2>Cost | Amount</h2>
+        <p class="hint">Pembagian nilai scrap per kategori</p>
+        <div class="donut-wrap">
+          <div id="donut-chart"></div>
+          <div class="donut-legend" id="donut-legend"></div>
+        </div>
+        <p style="text-align:center;font-weight:800;color:#15803d;margin-top:10px;" id="donut-total"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= DATA SCRAP ================= -->
+  <section id="view-data" class="hidden">
+    <h1 class="page-title">Data Scrap</h1>
+    <p class="subtitle">Daftar semua catatan scrap — cari, filter, tambah, ubah, atau hapus.</p>
+
+    <div class="toolbar">
+      <input type="search" id="f-search" placeholder="Cari material / kode / pembeli..." oninput="renderTable()">
+      <select id="f-category" onchange="renderTable()">
+        <option value="">Semua Kategori</option>
+        <option>Assembly</option><option>Machining</option><option>Casting</option><option>Others</option>
+      </select>
+      <select id="f-status" onchange="renderTable()">
+        <option value="">Semua Status</option>
+        <option>Terjual</option><option>Pending</option><option>Tersedia</option>
+      </select>
+      <select id="f-month" onchange="renderTable()">
+        <option value="">Semua Bulan</option>
+        <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
+        <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
+        <option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option>
+        <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+      </select>
+      <button class="btn btn-primary" onclick="openForm()">+ Input Scrap</button>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn btn-ghost" onclick="loadSeed(true)">Muat Data Contoh</button>
+      <button class="btn btn-ghost" onclick="exportCSV()">Export CSV</button>
+      <button class="btn btn-danger" onclick="clearAll()">Hapus Semua Data</button>
+      <span style="color:#6b7280;font-size:13px;margin-left:auto;" id="table-info"></span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Tanggal</th><th>Kode</th><th>Material</th><th>Kategori</th>
+            <th class="num">Qty</th><th>Satuan</th><th class="num">Harga</th><th class="num">Total</th>
+            <th>Pembeli</th><th>Status</th><th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+      <p class="empty hidden" id="table-empty">Belum ada data scrap. Klik "+ Input Scrap" atau "Muat Data Contoh".</p>
+    </div>
+  </section>
+</div>
+
+<!-- ================= MODAL FORM ================= -->
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this) closeForm()">
+  <div class="modal">
+    <h2 id="modal-title">Input Scrap</h2>
+    <form id="scrap-form" onsubmit="saveForm(event)">
+      <input type="hidden" id="in-id">
+      <div class="form-grid">
+        <div><label>Tanggal</label><input type="date" id="in-tanggal" required></div>
+        <div><label>Kode</label><input type="text" id="in-kode" placeholder="cth: ASM-001" required></div>
+        <div class="full"><label>Material</label><input type="text" id="in-material" placeholder="cth: Chip Besi Machining" required></div>
+        <div>
+          <label>Kategori</label>
+          <select id="in-kategori">
+            <option>Assembly</option><option>Machining</option><option>Casting</option><option>Others</option>
+          </select>
+        </div>
+        <div>
+          <label>Status</label>
+          <select id="in-status">
+            <option>Terjual</option><option>Pending</option><option>Tersedia</option>
+          </select>
+        </div>
+        <div><label>Qty</label><input type="number" id="in-qty" min="1" step="1" value="1" required oninput="updatePreview()"></div>
+        <div><label>Satuan</label><input type="text" id="in-satuan" value="pcs" required></div>
+        <div><label>Harga per Satuan (Rp)</label><input type="number" id="in-harga" min="0" step="1" value="0" required oninput="updatePreview()"></div>
+        <div><label>Pembeli</label><input type="text" id="in-pembeli" placeholder="cth: PT Daur Ulang Jaya"></div>
+        <div class="full total-preview" id="total-preview">Total: Rp0</div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeForm()">Batal</button>
+        <button type="submit" class="btn btn-green">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+/* ================= Data ================= */
+var LS_KEY = "escrap_v1";
+var CATEGORIES = [
+  { name: "Assembly",  color: "#2563eb", icon: "⚙️" },
+  { name: "Machining", color: "#16a34a", icon: "🔩" },
+  { name: "Casting",   color: "#eab308", icon: "🏭" },
+  { name: "Others",    color: "#ef4444", icon: "📦" }
+];
+var MONTHS = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+
+/* Data contoh: total per kategori sama dengan referensi E-SCRAP.
+   Assembly 1028 pcs / Rp34.016.120 | Machining 12420 pcs / Rp772.687.167
+   Casting 9245 pcs / Rp1.382.326.837 | Others 7744 pcs / Rp99.002.097 */
+var SEED = [
+  { id:"s1",  tanggal:"2026-01-08", material:"Sisa Plat Aluminium Assembly", kode:"ASM-001", kategori:"Assembly",  qty:389,  satuan:"pcs", harga:31002,  pembeli:"PT Daur Ulang Jaya", status:"Terjual" },
+  { id:"s2",  tanggal:"2026-02-12", material:"Offcut Bracket Assembly",      kode:"ASM-002", kategori:"Assembly",  qty:537,  satuan:"pcs", harga:33168,  pembeli:"CV Logam Berkah",   status:"Terjual" },
+  { id:"s3",  tanggal:"2026-03-05", material:"Sisa Panel Assembly",           kode:"ASM-003", kategori:"Assembly",  qty:1,    satuan:"pcs", harga:31949,  pembeli:"UD Sinar Scrap",    status:"Terjual" },
+  { id:"s4",  tanggal:"2026-04-18", material:"Sisa Pipa Assembly",            kode:"ASM-004", kategori:"Assembly",  qty:27,   satuan:"pcs", harga:35017,  pembeli:"PT Rejeki Metal",   status:"Pending" },
+  { id:"s5",  tanggal:"2026-05-21", material:"Chip Besi Assembly",            kode:"ASM-005", kategori:"Assembly",  qty:74,   satuan:"pcs", harga:42807,  pembeli:"Toko Besi Makmur",  status:"Tersedia" },
+  { id:"s6",  tanggal:"2026-01-10", material:"Chip Besi Machining",           kode:"MCH-001", kategori:"Machining", qty:1543, satuan:"pcs", harga:57120,  pembeli:"PT Daur Ulang Jaya", status:"Terjual" },
+  { id:"s7",  tanggal:"2026-02-14", material:"Serbuk Aluminium Machining",    kode:"MCH-002", kategori:"Machining", qty:781,  satuan:"pcs", harga:66066,  pembeli:"CV Logam Berkah",   status:"Terjual" },
+  { id:"s8",  tanggal:"2026-03-09", material:"Chip Baja Machining",           kode:"MCH-003", kategori:"Machining", qty:2647, satuan:"pcs", harga:62622,  pembeli:"PT Rejeki Metal",   status:"Pending" },
+  { id:"s9",  tanggal:"2026-04-16", material:"Sisa Bar Machining",            kode:"MCH-004", kategori:"Machining", qty:2346, satuan:"pcs", harga:55832,  pembeli:"UD Sinar Scrap",    status:"Terjual" },
+  { id:"s10", tanggal:"2026-05-23", material:"Chip Stainless Machining",      kode:"MCH-005", kategori:"Machining", qty:5103, satuan:"pcs", harga:65885,  pembeli:"PT Daur Ulang Jaya", status:"Pending" },
+  { id:"s11", tanggal:"2026-01-11", material:"Sprue Casting",                 kode:"CST-001", kategori:"Casting",   qty:246,  satuan:"pcs", harga:159440, pembeli:"PT Rejeki Metal",   status:"Terjual" },
+  { id:"s12", tanggal:"2026-02-15", material:"Riser Casting",                 kode:"CST-002", kategori:"Casting",   qty:2335, satuan:"pcs", harga:136458, pembeli:"CV Logam Berkah",   status:"Pending" },
+  { id:"s13", tanggal:"2026-03-11", material:"Sisa Coran Casting",            kode:"CST-003", kategori:"Casting",   qty:3910, satuan:"pcs", harga:133635, pembeli:"PT Daur Ulang Jaya", status:"Terjual" },
+  { id:"s14", tanggal:"2026-04-19", material:"Gating System Casting",         kode:"CST-004", kategori:"Casting",   qty:931,  satuan:"pcs", harga:161555, pembeli:"UD Sinar Scrap",    status:"Terjual" },
+  { id:"s15", tanggal:"2026-05-25", material:"Scrap Cetakan Casting",         kode:"CST-005", kategori:"Casting",   qty:1823, satuan:"pcs", harga:192844, pembeli:"Toko Besi Makmur",  status:"Tersedia" },
+  { id:"s16", tanggal:"2026-01-13", material:"Kardus Bekas",                  kode:"OTR-001", kategori:"Others",    qty:247,  satuan:"pcs", harga:12340,  pembeli:"UD Sinar Scrap",    status:"Tersedia" },
+  { id:"s17", tanggal:"2026-02-17", material:"Plastik Bekas",                 kode:"OTR-002", kategori:"Others",    qty:3554, satuan:"pcs", harga:13017,  pembeli:"PT Daur Ulang Jaya", status:"Terjual" },
+  { id:"s18", tanggal:"2026-03-13", material:"Kabel Tembaga Bekas",           kode:"OTR-003", kategori:"Others",    qty:1112, satuan:"pcs", harga:10005,  pembeli:"CV Logam Berkah",   status:"Terjual" },
+  { id:"s19", tanggal:"2026-04-20", material:"Sisa Kayu Palet",               kode:"OTR-004", kategori:"Others",    qty:1462, satuan:"pcs", harga:12660,  pembeli:"PT Rejeki Metal",   status:"Pending" },
+  { id:"s20", tanggal:"2026-05-27", material:"Kertas Bekas",                  kode:"OTR-005", kategori:"Others",    qty:1369, satuan:"pcs", harga:14651,  pembeli:"UD Sinar Scrap",    status:"Terjual" }
+];
+
+var records = [];
+function load() {
+  try {
+    var raw = localStorage.getItem(LS_KEY);
+    if (raw) { records = JSON.parse(raw); return; }
+  } catch (e) { /* localStorage tidak tersedia: pakai data contoh di memori */ }
+  records = JSON.parse(JSON.stringify(SEED));
+}
+function save() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(records)); } catch (e) {}
+}
+
+/* ================= Format ================= */
+function fmtRp(n) { return "Rp" + Number(n).toLocaleString("id-ID"); }
+function fmtNum(n) { return Number(n).toLocaleString("id-ID"); }
+function totalOf(r) { return r.qty * r.harga; }
+function esc(s) { return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+/* ================= Hitung agregat ================= */
+function agg() {
+  var byCat = {};
+  CATEGORIES.forEach(function(c){ byCat[c.name] = { qty: 0, amt: 0 }; });
+  var byMonth = [];
+  for (var m = 0; m < 12; m++) {
+    var row = { qty: 0 }; CATEGORIES.forEach(function(c){ row[c.name] = 0; });
+    byMonth.push(row);
+  }
+  var totQty = 0, totAmt = 0, soldAmt = 0, pendAmt = 0, pendQty = 0;
+  records.forEach(function(r){
+    var t = totalOf(r);
+    if (byCat[r.kategori]) { byCat[r.kategori].qty += r.qty; byCat[r.kategori].amt += t; }
+    var mi = parseInt(r.tanggal.slice(5, 7), 10) - 1;
+    if (mi >= 0 && mi < 12) { byMonth[mi].qty += r.qty; if (byMonth[mi][r.kategori] != null) byMonth[mi][r.kategori] += r.qty; }
+    totQty += r.qty; totAmt += t;
+    if (r.status === "Terjual") soldAmt += t;
+    if (r.status === "Pending") { pendAmt += t; pendQty += r.qty; }
+  });
+  return { byCat: byCat, byMonth: byMonth, totQty: totQty, totAmt: totAmt, soldAmt: soldAmt, pendAmt: pendAmt, pendQty: pendQty };
+}
+
+/* ================= Render: dashboard ================= */
+function renderCards(a) {
+  var html = "";
+  CATEGORIES.forEach(function(c){
+    var d = a.byCat[c.name];
+    html += '<div class="card ' + (c.name === "Assembly" ? "blue" : c.name === "Machining" ? "green" : c.name === "Casting" ? "yellow" : "red") + '">' +
+      '<div class="cat"><span class="ico">' + c.icon + '</span>' + c.name + ' <span class="lbl">| Amount</span></div>' +
+      '<div class="qty" data-cat-qty="' + c.name + '">' + fmtNum(d.qty) + '</div>' +
+      '<div class="amt" data-cat-amt="' + c.name + '">' + fmtRp(d.amt) + '</div>' +
+      '<div class="lbl">Total ' + c.name + '</div></div>';
+  });
+  document.getElementById("category-cards").innerHTML = html;
+}
+
+function renderSummary(a) {
+  document.getElementById("sum-total").innerHTML = fmtNum(a.totQty) + ' <small>pcs</small> &middot; ' + fmtRp(a.totAmt);
+  document.getElementById("sum-sold").innerHTML = fmtRp(a.soldAmt);
+  document.getElementById("sum-pending").innerHTML = fmtRp(a.pendAmt) + ' <small>(' + fmtNum(a.pendQty) + ' pcs)</small>';
+  document.getElementById("bell-count").textContent = a.pendQty > 0 ? a.byCat && Object.keys(a.byCat).length : 0;
+  document.getElementById("bell-count").textContent = records.filter(function(r){ return r.status === "Pending"; }).length;
+}
+
+/* Grafik batang tumpuk Jan–Mei (SVG murni) */
+function renderBarChart(a) {
+  var months = [0,1,2,3,4]; // Jan–Mei
+  var maxQty = 0;
+  months.forEach(function(mi){ if (a.byMonth[mi].qty > maxQty) maxQty = a.byMonth[mi].qty; });
+  var W = 640, H = 260, padL = 44, padB = 28, padT = 10;
+  var chartH = H - padT - padB, chartW = W - padL - 10;
+  var bw = Math.min(64, chartW / months.length * 0.55);
+  var html = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto" role="img" aria-label="Grafik qty per bulan">';
+  // garis grid + label sumbu Y
+  for (var g = 0; g <= 4; g++) {
+    var y = padT + chartH - (chartH * g / 4);
+    var val = Math.round(maxQty * g / 4);
+    html += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - 10) + '" y2="' + y + '" stroke="#e5e7eb"/>';
+    html += '<text x="' + (padL - 6) + '" y="' + (y + 4) + '" font-size="11" fill="#6b7280" text-anchor="end">' + fmtNum(val) + '</text>';
+  }
+  months.forEach(function(mi, i){
+    var cx = padL + (chartW / months.length) * (i + 0.5);
+    var y0 = padT + chartH;
+    CATEGORIES.forEach(function(c){
+      var q = a.byMonth[mi][c.name] || 0;
+      if (!q || !maxQty) return;
+      var h = chartH * q / maxQty;
+      html += '<rect x="' + (cx - bw / 2) + '" y="' + (y0 - h) + '" width="' + bw + '" height="' + h + '" fill="' + c.color + '"><title>' + c.name + ' ' + MONTHS[mi] + ': ' + fmtNum(q) + ' pcs</title></rect>';
+      y0 -= h;
+    });
+    html += '<text x="' + cx + '" y="' + (H - 8) + '" font-size="12" fill="#374151" text-anchor="middle">' + MONTHS[mi] + '</text>';
+    if (a.byMonth[mi].qty) html += '<text x="' + cx + '" y="' + Math.max(12, (padT + chartH - (chartH * a.byMonth[mi].qty / maxQty) - 5)) + '" font-size="11" fill="#374151" text-anchor="middle" font-weight="700">' + fmtNum(a.byMonth[mi].qty) + '</text>';
+  });
+  html += '</svg>';
+  document.getElementById("bar-chart").innerHTML = a.totQty ? html : '<p class="empty">Belum ada data untuk grafik.</p>';
+  document.getElementById("bar-legend").innerHTML = CATEGORIES.map(function(c){
+    return '<span><i class="sw" style="background:' + c.color + '"></i>' + c.name + '</span>';
+  }).join("");
+}
+
+/* Donut biaya (SVG murni, stroke-dasharray) */
+function renderDonut(a) {
+  var total = a.totAmt;
+  var R = 70, C = 2 * Math.PI * R, cx = 90, cy = 90;
+  var html = "";
+  if (!total) { document.getElementById("donut-chart").innerHTML = '<p class="empty">Belum ada data.</p>'; document.getElementById("donut-legend").innerHTML = ""; document.getElementById("donut-total").textContent = ""; return; }
+  html += '<svg width="180" height="180" viewBox="0 0 180 180" role="img" aria-label="Donut biaya per kategori">';
+  html += '<circle cx="' + cx + '" cy="' + cy + '" r="' + R + '" fill="none" stroke="#f3f4f6" stroke-width="30"/>';
+  var offset = 0.25; // mulai dari atas
+  CATEGORIES.forEach(function(c){
+    var frac = a.byCat[c.name].amt / total;
+    if (!frac) return;
+    var dash = frac * C;
+    html += '<circle cx="' + cx + '" cy="' + cy + '" r="' + R + '" fill="none" stroke="' + c.color + '" stroke-width="30" stroke-dasharray="' + dash.toFixed(1) + ' ' + (C - dash).toFixed(1) + '" stroke-dashoffset="' + (-offset * C).toFixed(1) + '"><title>' + c.name + ': ' + fmtRp(a.byCat[c.name].amt) + ' (' + (frac * 100).toFixed(2) + '%)</title></circle>';
+    offset += frac;
+  });
+  html += '<text x="90" y="86" font-size="12" fill="#6b7280" text-anchor="middle">Total Cost</text>';
+  html += '<text x="90" y="104" font-size="12" font-weight="700" fill="#1f2937" text-anchor="middle">' + fmtRp(total).replace("Rp", "Rp ") + '</text>';
+  html += '</svg>';
+  document.getElementById("donut-chart").innerHTML = html;
+  document.getElementById("donut-legend").innerHTML = CATEGORIES.map(function(c){
+    var frac = total ? a.byCat[c.name].amt / total * 100 : 0;
+    return '<div><span><i class="sw" style="background:' + c.color + '"></i> ' + c.name + '</span><b>' + frac.toFixed(2) + '%</b></div>';
+  }).join("");
+  document.getElementById("donut-total").textContent = fmtRp(total);
+}
+
+/* ================= Render: tabel ================= */
+function renderTable() {
+  var q = (document.getElementById("f-search").value || "").toLowerCase();
+  var fc = document.getElementById("f-category").value;
+  var fs = document.getElementById("f-status").value;
+  var fm = document.getElementById("f-month").value;
+  var rows = records.filter(function(r){
+    if (fc && r.kategori !== fc) return false;
+    if (fs && r.status !== fs) return false;
+    if (fm && r.tanggal.slice(5, 7) !== fm) return false;
+    if (q && (r.material + " " + r.kode + " " + (r.pembeli || "")).toLowerCase().indexOf(q) === -1) return false;
+    return true;
+  });
+  var html = "";
+  rows.forEach(function(r){
+    html += "<tr><td>" + esc(r.tanggal) + "</td><td>" + esc(r.kode) + "</td><td>" + esc(r.material) + "</td>" +
+      '<td><span class="cat-tag">' + esc(r.kategori) + "</span></td>" +
+      '<td class="num">' + fmtNum(r.qty) + '</td><td>' + esc(r.satuan) + '</td>' +
+      '<td class="num">' + fmtRp(r.harga) + '</td><td class="num">' + fmtRp(totalOf(r)) + "</td>" +
+      "<td>" + esc(r.pembeli || "-") + '</td><td><span class="badge st-' + r.status + '">' + r.status + "</span></td>" +
+      '<td><button class="btn btn-ghost btn-sm" onclick="openForm(\'' + r.id + '\')">Edit</button> ' +
+      '<button class="btn btn-danger btn-sm" onclick="deleteRecord(\'' + r.id + '\')">Hapus</button></td></tr>';
+  });
+  document.getElementById("table-body").innerHTML = html;
+  document.getElementById("table-empty").classList.toggle("hidden", rows.length > 0);
+  document.getElementById("table-info").textContent = rows.length + " dari " + records.length + " catatan";
+  document.getElementById("nav-count").textContent = records.length;
+}
+
+function renderAll() {
+  var a = agg();
+  renderCards(a); renderSummary(a); renderBarChart(a); renderDonut(a); renderTable();
+}
+
+/* ================= Navigasi ================= */
+function showView(v) {
+  document.getElementById("view-dashboard").classList.toggle("hidden", v !== "dashboard");
+  document.getElementById("view-data").classList.toggle("hidden", v !== "data");
+  document.getElementById("nav-dashboard").classList.toggle("active", v === "dashboard");
+  document.getElementById("nav-data").classList.toggle("active", v === "data");
+}
+
+/* ================= Form ================= */
+function updatePreview() {
+  var qty = parseFloat(document.getElementById("in-qty").value) || 0;
+  var harga = parseFloat(document.getElementById("in-harga").value) || 0;
+  document.getElementById("total-preview").textContent = "Total: " + fmtRp(qty * harga);
+}
+function openForm(id) {
+  var f = document.getElementById("scrap-form");
+  f.reset();
+  document.getElementById("in-tanggal").value = new Date().toISOString().slice(0, 10);
+  document.getElementById("in-id").value = "";
+  document.getElementById("modal-title").textContent = "Input Scrap";
+  if (id) {
+    var r = records.find(function(x){ return x.id === id; });
+    if (r) {
+      document.getElementById("modal-title").textContent = "Edit Scrap";
+      document.getElementById("in-id").value = r.id;
+      document.getElementById("in-tanggal").value = r.tanggal;
+      document.getElementById("in-kode").value = r.kode;
+      document.getElementById("in-material").value = r.material;
+      document.getElementById("in-kategori").value = r.kategori;
+      document.getElementById("in-status").value = r.status;
+      document.getElementById("in-qty").value = r.qty;
+      document.getElementById("in-satuan").value = r.satuan;
+      document.getElementById("in-harga").value = r.harga;
+      document.getElementById("in-pembeli").value = r.pembeli || "";
+    }
+  }
+  updatePreview();
+  document.getElementById("modal-bg").classList.add("open");
+}
+function closeForm() { document.getElementById("modal-bg").classList.remove("open"); }
+function saveForm(e) {
+  e.preventDefault();
+  var id = document.getElementById("in-id").value;
+  var rec = {
+    id: id || ("r" + Date.now()),
+    tanggal: document.getElementById("in-tanggal").value,
+    kode: document.getElementById("in-kode").value.trim(),
+    material: document.getElementById("in-material").value.trim(),
+    kategori: document.getElementById("in-kategori").value,
+    status: document.getElementById("in-status").value,
+    qty: parseInt(document.getElementById("in-qty").value, 10),
+    satuan: document.getElementById("in-satuan").value.trim() || "pcs",
+    harga: parseInt(document.getElementById("in-harga").value, 10) || 0,
+    pembeli: document.getElementById("in-pembeli").value.trim()
+  };
+  if (!rec.tanggal || !rec.kode || !rec.material || !(rec.qty > 0)) { alert("Lengkapi tanggal, kode, material, dan qty (minimal 1)."); return; }
+  var dupe = records.find(function(x){ return x.kode.toLowerCase() === rec.kode.toLowerCase() && x.id !== rec.id; });
+  if (dupe) { alert("Kode '" + rec.kode + "' sudah dipakai. Gunakan kode lain."); return; }
+  if (id) {
+    var i = records.findIndex(function(x){ return x.id === id; });
+    if (i > -1) records[i] = rec;
+  } else {
+    records.push(rec);
+  }
+  save(); closeForm(); renderAll();
+}
+function deleteRecord(id) {
+  var r = records.find(function(x){ return x.id === id; });
+  if (!r) return;
+  if (!confirm("Hapus catatan '" + r.material + "' (" + r.kode + ")?")) return;
+  records = records.filter(function(x){ return x.id !== id; });
+  save(); renderAll();
+}
+
+/* ================= Data contoh / hapus / CSV ================= */
+function loadSeed(ask) {
+  if (ask && records.length && !confirm("Muat ulang data contoh? Data saat ini akan diganti.")) return;
+  records = JSON.parse(JSON.stringify(SEED));
+  save(); renderAll();
+}
+function clearAll() {
+  if (!records.length) return;
+  if (!confirm("Hapus SEMUA data scrap? Tindakan ini tidak bisa dibatalkan.")) return;
+  records = [];
+  save(); renderAll();
+}
+function exportCSV() {
+  var head = ["Tanggal","Kode","Material","Kategori","Qty","Satuan","Harga","Total","Pembeli","Status"];
+  var lines = [head.join(";")];
+  records.forEach(function(r){
+    lines.push([r.tanggal, r.kode, '"' + r.material.replace(/"/g, '""') + '"', r.kategori, r.qty, r.satuan, r.harga, totalOf(r), '"' + (r.pembeli || "").replace(/"/g, '""') + '"', r.status].join(";"));
+  });
+  var blob = new Blob(["\ufeff" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "data-scrap.csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ================= Mulai ================= */
+load();
+renderAll();
+</script>
+</body>
+</html>
